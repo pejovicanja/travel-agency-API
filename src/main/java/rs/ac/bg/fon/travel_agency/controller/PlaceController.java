@@ -17,8 +17,6 @@ import rs.ac.bg.fon.travel_agency.mapper.PlaceMapper;
 import rs.ac.bg.fon.travel_agency.service.PlaceService;
 import rs.ac.bg.fon.travel_agency.service.UserService;
 
-import java.io.IOException;
-import java.util.Base64;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -48,7 +46,6 @@ public class PlaceController {
     @PreAuthorize("hasRole(\"" + Role.RoleCode.Code.USER_BASIC + "\")")
     public ResponseEntity<PlaceDto> getPlace(@PathVariable Long id) {
         Place place = placeService.getPlaceById(id);
-        Resource placeImage;
         PlaceDto placeDto = PlaceMapper.toDto(place);
 
         return ResponseEntity.ok(placeDto);
