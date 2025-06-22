@@ -22,7 +22,7 @@ public class UserController {
     private final RoleService roleService;
 
     @PatchMapping("/{id}")
-    // @PreAuthorize("hasRole(\"" + Role.RoleCode.Code.ADMIN + "\")")
+    @PreAuthorize("hasRole(\"" + Role.RoleCode.Code.ADMIN + "\")")
     public void updateUsersRoles(
             @PathVariable Long id, @RequestBody @Valid UserPatchRequest userPatchRequest) {
         User user = userService.getUserById(id);

@@ -22,7 +22,7 @@ public class UserServiceImpl implements UserService, UserDetailsService {
 
     @Override
     @Transactional(readOnly = true)
-    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+    public User loadUserByUsername(String username) throws UsernameNotFoundException {
         return userRepository
                        .findByEmail(username)
                        .orElseThrow(() -> new UsernameNotFoundException("User with username: " + username + " can't be found"));

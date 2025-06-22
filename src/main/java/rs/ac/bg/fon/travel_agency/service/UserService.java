@@ -7,6 +7,8 @@ import java.util.Set;
 
 public interface UserService {
 
+    User loadUserByUsername(String username);
+
     User getUserById(Long id);
 
     void updateUserRoles(User user, Set<Role> roles);
