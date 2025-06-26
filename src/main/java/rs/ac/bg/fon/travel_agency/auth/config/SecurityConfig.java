@@ -22,6 +22,7 @@ import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import rs.ac.bg.fon.travel_agency.auth.filter.JwtAuthenticationFilter;
+import rs.ac.bg.fon.travel_agency.auth.filter.XSSFilter;
 import rs.ac.bg.fon.travel_agency.auth.handlers.RestAuthenticationEntryPoint;
 import rs.ac.bg.fon.travel_agency.service.UserService;
 
@@ -79,5 +80,13 @@ public class SecurityConfig {
     @Primary
     public AuthenticationEntryPoint getRestAuthenticationEntryPoint() {
         return new RestAuthenticationEntryPoint();
+    }
+
+    @Bean
+    public FilterRegistrationBean<XSSFilter> filterRegistrationBean() {
+        FilterRegistrationBean<XSSFilter> registrationBean = new FilterRegistrationBean<>();
+        registrationBean.setFilter(new XSSFilter());
+        registrationBean.addUrlPatterns("/*");
+        return registrationBean;
     }
 }
