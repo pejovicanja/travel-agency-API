@@ -14,9 +14,11 @@ import rs.ac.bg.fon.travel_agency.auth.model.request.SignUpRequest;
 import rs.ac.bg.fon.travel_agency.auth.model.response.JwtAuthenticationResponse;
 import rs.ac.bg.fon.travel_agency.auth.service.AuthenticationService;
 import rs.ac.bg.fon.travel_agency.auth.service.JwtService;
+import rs.ac.bg.fon.travel_agency.domain.RefreshToken;
 import rs.ac.bg.fon.travel_agency.domain.Role;
 import rs.ac.bg.fon.travel_agency.domain.User;
 import rs.ac.bg.fon.travel_agency.repository.UserRepository;
+import rs.ac.bg.fon.travel_agency.service.RefreshTokenService;
 import rs.ac.bg.fon.travel_agency.service.RoleService;
 
 import java.time.ZoneOffset;
@@ -31,6 +33,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
     private final RoleService roleService;
+    private final RefreshTokenService refreshTokenService;
 
     @Override
     @Transactional
@@ -46,6 +49,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
                         .build();
         userRepository.save(user);
         var jwt = jwtService.generateToken(user);
+        var refreshToken = refreshTokenService.getOrCreateRefreshToken(user);
         return JwtAuthenticationResponse.builder()
                 .id(user.getId())
                 .token(jwt)
@@ -55,6 +59,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
                                 .toInstant()
                                 .atOffset(ZoneOffset.ofHours(2)))
                 .email(user.getEmail())
+                .refreshToken(refreshToken.getToken())
                 .build();
     }
 
@@ -69,6 +74,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
                         .orElseThrow(
                                 () -> new IllegalArgumentException("Invalid email or password"));
         var jwt = jwtService.generateToken(user);
+        var refreshToken = refreshTokenService.getOrCreateRefreshToken(user);
         return JwtAuthenticationResponse.builder()
                 .id(user.getId())
                 .token(jwt)
@@ -78,7 +84,25 @@ public class AuthenticationServiceImpl implements AuthenticationService {
                                 .toInstant()
                                 .atOffset(ZoneOffset.ofHours(2)))
                 .email(user.getEmail())
+                .refreshToken(refreshToken.getToken())
                 .build();
+    }
+
+    @Override
+    @Transactional
+    public String refreshToken(String refreshToken) {
+        RefreshToken generatedRefreshToken = refreshTokenService.findByToken(refreshToken);
+        refreshTokenService.verifyExpiration(generatedRefreshToken);
+        return jwtService.generateToken(generatedRefreshToken.getUser());
+    }
+
+    @Override
+    @Transactional
+    public void singOut(String token) {
+        User user = getLoggedUser();
+        if (user != null) {
+            refreshTokenService.invalidateTokenByUser(user);
+        }
     }
 
     private User getLoggedUser() {

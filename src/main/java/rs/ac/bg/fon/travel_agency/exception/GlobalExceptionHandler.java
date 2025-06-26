@@ -17,6 +17,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import rs.ac.bg.fon.travel_agency.exception.custom.NotFoundException;
+import rs.ac.bg.fon.travel_agency.exception.custom.TokenRefreshException;
 
 import java.net.URI;
 import java.time.Instant;
@@ -132,6 +133,19 @@ public class GlobalExceptionHandler {
         problemDetail.setProperty("timestamp", Instant.now());
         problemDetail.setType(URI.create(applicationUrl + ERROR_PATH + "authorization"));
         problemDetail.setInstance(URI.create(request.getRequestURI()));
+        return new ResponseEntity<>(problemDetail, HttpStatus.FORBIDDEN);
+    }
+
+    @ExceptionHandler(TokenRefreshException.class)
+    public ResponseEntity<ProblemDetail> onTokenRefreshException(
+            TokenRefreshException ex, HttpServletRequest request) {
+        ProblemDetail problemDetail =
+                ProblemDetail.forStatusAndDetail(HttpStatus.FORBIDDEN, ex.getMessage());
+        problemDetail.setType(URI.create(applicationUrl + ERROR_PATH + "token-refresh"));
+        problemDetail.setTitle("Token refresh failed");
+        problemDetail.setProperty("timestamp", Instant.now());
+        problemDetail.setInstance(URI.create(request.getRequestURI()));
+
         return new ResponseEntity<>(problemDetail, HttpStatus.FORBIDDEN);
     }
 

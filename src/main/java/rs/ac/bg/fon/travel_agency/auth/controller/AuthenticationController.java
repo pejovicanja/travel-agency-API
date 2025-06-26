@@ -7,7 +7,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import rs.ac.bg.fon.travel_agency.auth.model.request.SignInRequest;
 import rs.ac.bg.fon.travel_agency.auth.model.request.SignUpRequest;
+import rs.ac.bg.fon.travel_agency.auth.model.request.TokenRefreshRequest;
 import rs.ac.bg.fon.travel_agency.auth.model.response.JwtAuthenticationResponse;
+import rs.ac.bg.fon.travel_agency.auth.model.response.TokenRefreshResponse;
 import rs.ac.bg.fon.travel_agency.auth.service.AuthenticationService;
 
 @RestController
@@ -25,5 +27,24 @@ public class AuthenticationController {
     @PostMapping("/signin")
     public ResponseEntity<JwtAuthenticationResponse> signin(@RequestBody SignInRequest request) {
         return ResponseEntity.ok(authenticationService.signIn(request));
+    }
+
+    @PostMapping("/refresh-token")
+    public ResponseEntity<TokenRefreshResponse> refreshToken(
+            @Valid @RequestBody TokenRefreshRequest request) {
+        String token = authenticationService.refreshToken(request.refreshToken());
+        return ResponseEntity.ok(new TokenRefreshResponse(token, request.refreshToken()));
+    }
+
+    @PostMapping("/signout")
+    public void logout(@RequestHeader("Authorization") String token, HttpServletResponse response) {
+        String[] parts = token.split(" ");
+        if (parts.length == 2) {
+            String jwtToken = parts[1];
+            authenticationService.singOut(jwtToken);
+            response.setStatus(HttpServletResponse.SC_OK);
+        } else {
+            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+        }
     }
 }
